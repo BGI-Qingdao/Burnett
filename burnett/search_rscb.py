@@ -5,7 +5,6 @@
 # @File: Burnett/search_rscb.py
 import argparse
 import requests
-from typing import Optional
 from rcsbsearchapi.search import SequenceQuery
 import pandas as pd
 import sys
@@ -29,21 +28,7 @@ def search_database(amino_seq, evalue_cutoff=1, seq_identity: float = 0.9):
         return pid
 
 
-def create_argument_parser():
-    parser = argparse.ArgumentParser(
-        description="Spatial Gene Regulatory Network inference",
-        fromfile_prefix_chars="@",
-        add_help=True,
-        epilog="Arguments can be read from file using a @args.txt construct. "
-    )
-    parser.add_argument('-f', '--fasta', help='protein amino acid sequence fasta')
-    # parser.add_argument(len_cutoff=0.7)
-    # parser.add_argument(evalue_cutoff=1,)
-    # parser.add_argument(seq_identity=0.7)
-    return parser
-
-
-def read_fasta(fasta_file, len_cutoff: Optional[int] = None):
+def read_fasta(fasta_file, len_cutoff: int=0):
     sequences = {}  # 用于存储序列的字典
     with open(fasta_file, "r") as f:
         current_sequence_id = None
@@ -67,16 +52,17 @@ def main(species, fn, len_cutoff=100, evalue_cutoff=1, seq_identity=0.7):
     # 1. Load in protome data for one species
     fasta = read_fasta(fn, len_cutoff=len_cutoff)
     total_protein_num = len(fasta)
-    print('Loading fasta file done.')
+    print('Load fasta file done.')
 
     # 3. Search in PDB database
     top_pids = {}
     not_found = []
     print('Searching RSCB database...')
     n = 0
-    for name, amino_seq in tqdm(fasta.items(), total=total_protein_num, desc="Searching protein sequences in RSCB Database"):
+    # for name, amino_seq in tqdm(fasta.items(), total=total_protein_num, desc="Searching protein sequences in RSCB Database"):
+    for name, amino_seq in fasta.items():
         n += 1
-        if n % 50 == 0:
+        if n % 100 == 0:
             print(f'{n}/{total_protein_num} proteins, found {len(top_pids)} matches')
         try:
             pid = search_database(amino_seq, evalue_cutoff=evalue_cutoff, seq_identity=seq_identity)
@@ -94,6 +80,7 @@ def main(species, fn, len_cutoff=100, evalue_cutoff=1, seq_identity=0.7):
     # 3. save to file
     df = pd.DataFrame(top_pids.items(), columns=['symbol', 'pid'])
     df.to_csv(f'{species}_pid_protein_name.csv', sep='\t', index=False)
+    # get_gene_name(df, species)
 
     with open(f'{species}_pid_list.txt', 'w') as f:
         f.writelines(','.join(list(top_pids.values())))
@@ -104,16 +91,19 @@ def main(species, fn, len_cutoff=100, evalue_cutoff=1, seq_identity=0.7):
     print('Saving to files done.')
 
 
-if __name__ == '__main__':
-    # species_list = ['gray_bichir', 'human', 'indian_medaka', 'lungfish', 'tarpon', 'whitespotted_bambooshark',
-    #                 'zebrafish']
-    # for s in species_list:
-    #     print(f'Current species: {s}')
-    #     fn = f'/home/share/huadjyin/home/fanguangyi/liyao1/evo_inter/data/protome/{s}.gene_symbol.fa'
-    #     main(s, fn)
+def get_gene_name(df, species, col_name="symbol"):
+    df['name'] = df[col_name].str.split(' ', expand=True)[2]
+    sub = df[~df.name.str.startswith('gene_symbol')]
+    names = list(sub.name)
+    with open(f'{species}_not_found_names.txt', 'w') as f:
+        f.writelines('\n'.join(names))
+    return names
 
-    s = sys.argv[1]
-    fn1 = f'/Users/Oreo/Projects/protein_GCN/protome/{s}.gene_symbol.fa'
-    fn = f'/home/share/huadjyin/home/fanguangyi/liyao1/evo_inter/data/protome/{s}.gene_symbol.fa'
-    print(f'Current species: {s}')
-    main(s, fn)
+
+if __name__ == '__main__':
+    print('Starting...')
+    species_list = ['whitespotted_bambooshark', 'human', 'zebrafish', 'human', 'lungfish', 'tarpon', 'gray_bichir', 'indian_medaka']
+    for s in species_list:
+        print(f'Current species: {s}')
+        fn = f'/home/share/huadjyin/home/fanguangyi/liyao1/evo_inter/data/protome/{s}.gene_symbol.fa'
+        main(s, fn)
