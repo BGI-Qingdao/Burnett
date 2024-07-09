@@ -118,3 +118,17 @@ def handle_cluster_output(cluster_output, ref):
     cluster_output_with_non_cluster = pd.concat([cluster_output, non_df], ignore_index=True, sort=False)
     return cluster_output_with_non_cluster
 
+
+def get_rest(ref_fn, downed_fn):
+    with open(ref_fn, 'r') as f:
+        l = f.readlines()
+    ref_list = l[0].split(',')
+
+    with open(downed_fn, 'r') as f:
+        l = f.readlines()
+    downed_list = [i.strip() for i in l]
+
+    not_downed_list = list(set(ref_list) - set(downed_list))
+    with open('pid_not_downed.txt', 'w') as f:
+        f.writelines(','.join(not_downed_list))
+
