@@ -109,7 +109,6 @@ if __name__ == '__main__':
     # model, alphabet = esm.pretrained.load_model_and_alphabet(model_path)
     print('Loading pretrained model...')
     import esm.esmfold.v1.pretrained
-
     model = esm.esmfold.v1.pretrained._load_model(model_path)
     model = model.eval().cuda()  # class 'esm.esmfold.v1.esmfold.ESMFold'
 
@@ -149,3 +148,4 @@ if __name__ == '__main__':
                 with open(os.path.join(out_dir, '{}.pdb'.format(reformated_pid)), 'w') as f:
                     f.write(output)
         print(f'{n} proteins was predicted, {x} have not.')
+
