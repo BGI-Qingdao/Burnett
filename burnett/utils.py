@@ -45,6 +45,22 @@ def save_fasta(fasta: dict, fn: str = 'new.fasta'):
             f.writelines(f'>{header}\n{seq}\n')
 
 
+def chunks(dir_data, chunk_size=100):
+    from itertools import islice
+    it = iter(dir_data)
+    for i in range(0, len(dir_data), chunk_size):
+        yield {k: dir_data[k] for k in islice(it, chunk_size)}
+
+
+def split_fasta(fasta_fn, chunk_size=100):
+    """split dictionary into chunks, each chunk contains chunk_size items"""
+    fasta_dir = read_fasta(fasta_fn)
+    n = 1
+    for item in chunks(fasta_dir, chunk_size=chunk_size):
+        save_fasta(item, fn=f'{n}.fa')
+        n += 1
+
+
 def search_by_gene_symbol(fasta: dict, gene_symbol: str):
     """
     case insensitive
