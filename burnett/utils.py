@@ -7,7 +7,6 @@
 
 def read_fasta(fasta_file: str, len_cutoff: int = 0) -> dict:
     """
-
     :param fasta_file:
     :param len_cutoff:
     :return:
