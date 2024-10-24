@@ -34,7 +34,6 @@ class ProteinStuctureEmbeddings():
     def read_mapping(self, species_name: str) -> pd.DataFrame:
         """
         Read protein name to database protein id mapping file
-        :param map_dir: directory that stores protein-id mapping files
         :param species_name: target species name
         :return:
         """
