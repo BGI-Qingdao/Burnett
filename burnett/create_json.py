@@ -3,6 +3,13 @@
 # @Date: Created on 04 Dec 2024 16:39
 # @Author: Yao LI
 # @File: burnett/create_json.py
+"""
+Create json files for AlphaFold3 batch prediction
+Rules:
+1. AF3 does not allow sequences longer than 5000 amino acids (5000 excluded)
+2. AF3 does not allow dots and other symbols? occur in job names. Use _ as delimiter
+3. AF3 does not allow sequences containing invalid characters
+"""
 import os
 import sys
 import json
@@ -33,7 +40,7 @@ def format_af3_name(job_id):
 def af3_entry(k, v):
     """
     Create one entry in AlphaFold3 format
-    :param k: job id
+    :param k: job name
     :param v: protein sequence
     :return:
     """
@@ -65,19 +72,19 @@ def parse_af3_json(fasta: dict):
 
 
 if __name__ == '__main__':
-    database_dir = '/home/share/huadjyin/home/fanguangyi/liyao1/04.predict_structures/exp/6.alphafold_second_round'
+    database_dir = '/home/share/huadjyin/home/fanguangyi/liyao1/04.predict_structures/exp/6.alphafold_second_round'  # MODIFY
     species = sys.argv[1]
-    fn = os.path.join(database_dir, f'sub_fa/{species}_not_predicted_esmfold2.fa')
+    fn = os.path.join(database_dir, f'sub_fa/{species}_not_predicted_esmfold2.fa')  # MODIFY
     # 1. read fasta file
-    fasta = read_fasta(fn, max_len=5000, format=False)
+    fasta = read_fasta(fn, max_len=5000, format=False)  # MODIFY: length etc.
     # ensure the format of the fasta entries meet the AlphdFold3 requirement
     fasta = parse_af3_fasta(fasta)
     # 2. Split entries into chunks
-    sub_fasta_list = split_fasta(fasta, chunk_size=20)
+    sub_fasta_list = split_fasta(fasta, chunk_size=20)  # MODIFY: chunk size
     # 3. Save spliced fasta into json files, each file contains {chunk_size} entries
     n = 1
     for sub_fasta in sub_fasta_list:
         entry_chunk = parse_af3_json(sub_fasta)  # format fasta into a list of dictionaries
-        with open(f'protein_jsons/{species}/{species}_{n}.json', 'w') as f:
+        with open(f'protein_jsons/{species}/{species}_{n}.json', 'w') as f:  # MODIFY
             json.dump(entry_chunk, f, indent=4)
         n += 1
